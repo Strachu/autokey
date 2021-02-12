@@ -364,7 +364,7 @@ class AbstractHotkey(AbstractWindowFilter):
         d = {
             "modifiers": self.modifiers,
             "hotKey": self.hotKey,
-            "additionalHotkeys": self.additionalHotKeys
+            "additionalHotKeys": self.additionalHotKeys
             }
         return d
 

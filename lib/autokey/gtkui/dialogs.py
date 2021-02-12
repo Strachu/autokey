@@ -323,6 +323,7 @@ class HotkeySettingsDialog(DialogBase):
         self.configManager = configManager
         self.closure = closure
         self.key = None
+        self.additionalKeys = []
 
         self.controlButton = builder.get_object("controlButton")
         self.altButton = builder.get_object("altButton")
@@ -353,6 +354,7 @@ class HotkeySettingsDialog(DialogBase):
                 keyText = key
             self._setKeyLabel(keyText)
             self.key = keyText
+            self.additionalKeys = item.additionalHotKeys
 
         else:
             self.reset()
@@ -370,7 +372,7 @@ class HotkeySettingsDialog(DialogBase):
             key = keyText
 
         assert key is not None, "Attempt to set hotkey with no key"
-        item.set_hotkey(modifiers, key)
+        item.set_hotkey(modifiers, key, self.additionalKeys)
 
     def reset(self):
         self.controlButton.set_active(False)
@@ -382,6 +384,7 @@ class HotkeySettingsDialog(DialogBase):
 
         self._setKeyLabel(_("(None)"))
         self.key = None
+        self.additionalKeys = []
         self.setButton.set_sensitive(True)
 
     def set_key(self, key, modifiers: list=None):
