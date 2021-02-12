@@ -956,6 +956,10 @@ class XInterfaceBase(threading.Thread):
         modifier = self.__decodeModifier(keyCode)
         if modifier is not None:
             self.mediator.handle_modifier_up(modifier)
+        else:
+            focus = self.localDisplay.get_input_focus().focus
+            window_info = self.get_window_info(focus)
+            self.mediator.handle_keyrelease(keyCode, window_info)
             
     def handle_mouseclick(self, button, x, y):
         self.__enqueue(self.__handleMouseclick, button, x, y)

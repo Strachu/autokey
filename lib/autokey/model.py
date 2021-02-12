@@ -358,29 +358,42 @@ class AbstractHotkey(AbstractWindowFilter):
     def __init__(self):
         self.modifiers = []
         self.hotKey = None
+        self.additionalHotKeys = []
 
     def get_serializable(self):
         d = {
             "modifiers": self.modifiers,
-            "hotKey": self.hotKey
+            "hotKey": self.hotKey,
+            "additionalHotkeys": self.additionalHotKeys
             }
         return d
 
     def load_from_serialized(self, data):
-        self.set_hotkey(data["modifiers"], data["hotKey"])
+        self.set_hotkey(data["modifiers"], data["hotKey"], data.get("additionalHotKeys", []))
 
     def copy_hotkey(self, theHotkey):
         [self.modifiers.append(modifier) for modifier in theHotkey.modifiers]
         self.hotKey = theHotkey.hotKey
+        self.additionalHotKeys = theHotkey.additionalHotKeys
 
-    def set_hotkey(self, modifiers, key):
+    def set_hotkey(self, modifiers, key, additionalHotKeys = []):
         modifiers.sort()
         self.modifiers = modifiers
         self.hotKey = key
+        self.additionalHotKeys = additionalHotKeys
 
-    def check_hotkey(self, modifiers, key, windowTitle):
+    def check_hotkey(self, modifiers, key, windowTitle, pressedKeys = []):
         if self.hotKey is not None and self._should_trigger_window_title(windowTitle):
-            return (self.modifiers == modifiers) and (self.hotKey == key)
+            if not self.additionalHotKeys:
+                return (self.modifiers == modifiers) and (self.hotKey == key)
+            else:
+                allHotKeys = [self.hotKey] + self.additionalHotKeys
+                missingHotKeys = set(filter(lambda key: (key not in pressedKeys), allHotKeys));
+                
+                if(len(missingHotKeys) > 0):
+                    _logger.debug("Missing hot keys:  %s", missingHotKeys)
+                
+                return (self.modifiers == modifiers) and len(missingHotKeys) == 0
         else:
             return False
 

@@ -117,8 +117,8 @@ class Service:
         # Clear last to prevent undo of previous phrase in unexpected places
         self.phraseRunner.clear_last()
 
-    def handle_keypress(self, rawKey, modifiers, key, window_info):
-        logger.debug("Raw key: %r, modifiers: %r, Key: %s", rawKey, modifiers, key)
+    def handle_keypress(self, rawKey, modifiers, key, window_info, pressedKeys):
+        logger.debug("Raw key: %r, modifiers: %r, Key: %s, PressedKeys: %s", rawKey, modifiers, key, pressedKeys)
         logger.debug("Window visible title: %r, Window class: %r" % window_info)
         self.configManager.lock.acquire()
 
@@ -131,7 +131,7 @@ class Service:
             menu = None
 
             for item in self.configManager.hotKeys:
-                if item.check_hotkey(modifiers, rawKey, window_info):
+                if item.check_hotkey(modifiers, rawKey, window_info, pressedKeys):
                     itemMatch = item
                     break
 

@@ -45,6 +45,7 @@ class IoMediator(threading.Thread):
                           Key.CAPSLOCK: False,
                           Key.NUMLOCK: False
                           }
+        self.pressedKeys = set()
         
         if self.interfaceType == X_RECORD_INTERFACE:
             self.interface = XRecordInterface(self, service.app)
@@ -96,23 +97,36 @@ class IoMediator(threading.Thread):
         Looks up the character for the given key code, applying any 
         modifiers currently in effect, and passes it to the expansion service.
         """
-        self.queue.put_nowait((keyCode, window_info))
+        self.queue.put_nowait((keyCode, window_info, True))
+    
+    def handle_keyrelease(self, keyCode, window_info):
+        """
+        Looks up the character for the given key code, applying any 
+        modifiers currently in effect, and passes it to the expansion service.
+        """
+        self.queue.put_nowait((keyCode, window_info, False))
         
     def run(self):
         while True:
-            keyCode, window_info = self.queue.get()
+            keyCode, window_info, isPress = self.queue.get()
             if keyCode is None and window_info is None:
                 break
             
-            numLock = self.modifiers[Key.NUMLOCK]
-            modifiers = self.__getModifiersOn()
-            shifted = self.modifiers[Key.CAPSLOCK] ^ self.modifiers[Key.SHIFT]
-            key = self.interface.lookup_string(keyCode, shifted, numLock, self.modifiers[Key.ALT_GR])
-            rawKey = self.interface.lookup_string(keyCode, False, False, False)
-            
-            for target in self.listeners:
-                target.handle_keypress(rawKey, modifiers, key, window_info)
+            if isPress:
+                self.pressedKeys.add(keyCode)
                 
+                numLock = self.modifiers[Key.NUMLOCK]
+                modifiers = self.__getModifiersOn()
+                shifted = self.modifiers[Key.CAPSLOCK] ^ self.modifiers[Key.SHIFT]
+                key = self.interface.lookup_string(keyCode, shifted, numLock, self.modifiers[Key.ALT_GR])
+                rawKey = self.interface.lookup_string(keyCode, False, False, False)
+                pressedKeysStrings = set(map(lambda x: self.interface.lookup_string(x, False, False, False), self.pressedKeys))
+            
+                for target in self.listeners:
+                    target.handle_keypress(rawKey, modifiers, key, window_info, pressedKeysStrings)
+            else:
+                self.pressedKeys.discard(keyCode)
+            
             self.queue.task_done()
             
     def handle_mouse_click(self, rootX, rootY, relX, relY, button, windowInfo):
