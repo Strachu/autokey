@@ -404,6 +404,7 @@ class AbstractHotkey(AbstractWindowFilter):
 
             key = self.hotKey
             modifiers = self.modifiers
+            additionalKeys = self.additionalHotKeys
 
         ret = ""
 
@@ -415,6 +416,11 @@ class AbstractHotkey(AbstractWindowFilter):
             ret += "<space>"
         else:
             ret += key
+
+        if additionalKeys:
+            for key in additionalKeys:
+                ret += "+"
+                ret += key
 
         return ret
 
